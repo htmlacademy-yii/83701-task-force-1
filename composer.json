@@ -1,0 +1,33 @@
+{
+    "name": "baradmitrij/tforce",
+    "description": "training project form HtmlAcademy",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Dmitrij Barabanov",
+            "email": "baradmitrij@yandex.ru"
+        }
+    ],
+    "minimum-stability": "dev",
+
+    "require": {},
+
+
+    "autoload":{
+
+      "files": ["src/helpers.php"],
+
+      "psr-4":{
+          "TForce\\": "src",
+          "Test\\": "tests"
+      }
+    },
+
+    "require-dev": {
+        "phpunit/phpunit": "^7"
+    },
+
+     "scripts": {
+        "test": "phpunit --bootstrap vendor/autoload.php ./tests/TaskTest.php"
+    }
+}
