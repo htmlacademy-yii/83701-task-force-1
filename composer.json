@@ -28,6 +28,6 @@
     },
 
      "scripts": {
-        "test": "phpunit --bootstrap vendor/autoload.php ./tests/TaskTest.php"
+        "test": "phpunit ./tests/TaskTest.php"
     }
 }
