@@ -3,7 +3,7 @@
 namespace Test;
 
 use PHPUnit\Framework\TestCase;
-use TForce\Task;
+use TForce\Logic\Task;
 
 define('ROOT', getcwd());
 
@@ -17,7 +17,7 @@ require_once ROOT . DIRECTORY_SEPARATOR . 'vendor' .
 class TaskTest extends TestCase
 {
 
-    /** @var \TForce\Task */
+    /** @var \TForce\Logic\Task */
     private $taskInst;
 
     const PREFIX_STATUS = 'STATUS';
@@ -92,7 +92,7 @@ class TaskTest extends TestCase
         $this->assertEquals(
             $expected,
             $actual,
-            'WRONG STATUS OF NEW TFORCE\TASK'
+            'WRONG STATUS OF NEW TForce\Logic\TASK'
         );
     }
 

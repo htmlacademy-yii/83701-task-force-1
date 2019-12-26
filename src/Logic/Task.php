@@ -1,9 +1,9 @@
 <?php
-namespace TForce;
+namespace TForce\Logic;
 
 /**
  * Class Task
- * @package TForce
+ * @package TForce\Logic
  */
 class Task
 {
