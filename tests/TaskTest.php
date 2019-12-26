@@ -11,16 +11,23 @@ require_once ROOT . DIRECTORY_SEPARATOR
     . 'vendor' . DIRECTORY_SEPARATOR
     . 'autoload.php';
 
+/**
+ * Class TaskTest
+ * @package Test
+ */
 class TaskTest extends TestCase {
 
-    /**@var \TForce\Task */
+    /** @var \TForce\Task */
     private $taskInst;
 
     const PREFIX_STATUS = 'STATUS';
+    const PREFIX_STATUSES = 'STATUSES';
     const PREFIX_ACTION = 'ACTION';
+    const PREFIX_ACTIONS = 'ACTIONS';
     const PREFIX_ROLE = 'ROLE';
+    const PREFIX_ROLES = 'ROLES';
     const PREFIX_MAP = 'MAP';
-    const PREFIX_USERS = 'USERS';
+
 
     public function setUp() {
         $this->taskInst = new Task(2, 3);
@@ -30,6 +37,11 @@ class TaskTest extends TestCase {
         $this->taskInst = null;
     }
 
+    /**
+     * @param array $classConstants
+     * @param string $filterPrefix
+     * @return array Constant's collection of certain type
+     */
     public static function filterClassConstants($classConstants, $filterPrefix) {
         return array_filter(
             $classConstants,
@@ -43,56 +55,46 @@ class TaskTest extends TestCase {
         );
     }
 
+    /**
+     * @param string $className
+     * @return array All Constant's collections
+     */
     public static function getClassConstants($className) {
 
         $allConstants = (new \ReflectionClass(Task::class))->getConstants();
 
         return [
-            self::PREFIX_STATUS =>
+            self::PREFIX_STATUS   =>
                 self::filterClassConstants($allConstants, self::PREFIX_STATUS),
-            self::PREFIX_ACTION =>
+            self::PREFIX_STATUSES =>
+                self::filterClassConstants($allConstants, self::PREFIX_STATUSES),
+            self::PREFIX_ACTION   =>
                 self::filterClassConstants($allConstants, self::PREFIX_ACTION),
-            self::PREFIX_MAP    =>
+            self::PREFIX_ACTIONS  =>
+                self::filterClassConstants($allConstants, self::PREFIX_ACTIONS),
+            self::PREFIX_MAP      =>
                 self::filterClassConstants($allConstants, self::PREFIX_MAP)
         ];
     }
 
-    /*
-    TODO +
-    проверить, что будет ошибка, если не передадим id исполнителя и id
-    заказчика
-    */
     public function testCreateTaskWithoutCustomerIdOrExecutorId() {
         $this->expectException(\Throwable::class);
         new Task(2);
     }
 
-    /*
-    TODO +
-    проверить, что при передаче id заказчика и id испонителя будет создана
-    задача со статусом 'new'
-    */
     public function testStatusOfNewTask() {
-
-        $allStatusConstants =
-            self::getClassConstants(Task::class)[self::PREFIX_STATUS];
-
-        $statusConstantNew = array_filter(
-            $allStatusConstants,
-            function ($oneStatusConstant) {
-                return $oneStatusConstant['EN'] === 'new';
-            }
+        $expected = 'new';
+        $actual = mb_strtolower($this->taskInst->getCurStatus());
+        $this->assertEquals(
+            $expected,
+            $actual,
+            'WRONG STATUS OF NEW TFORCE\TASK'
         );
-
-        $expected = array_values($statusConstantNew)[0];
-        $actual = $this->taskInst->getCurStatus();
-        $this->assertEquals($expected, $actual, 'WRONG NEW TFORCE\TASK');
     }
 
-    /*
-    TODO +
-    проверить, что корректно возвращается статус задачи
-    */
+    /**
+     * @return array DataSet for 'testGetCurStatus' test
+     */
     public function dataStatusesForTask() {
 
         $onlyStatusConstants =
@@ -111,9 +113,10 @@ class TaskTest extends TestCase {
     }
 
     /**
+     * @param string $newStatus
      * @dataProvider dataStatusesForTask
      */
-    public function testGetCurStatus(array $newStatus) {
+    public function testGetCurStatus(string $newStatus) {
 
         $reflectionClass = new \ReflectionClass(Task::class);
         $reflectionProperty = $reflectionClass->getProperty('curStatus');
@@ -126,26 +129,15 @@ class TaskTest extends TestCase {
         $this->assertEquals(
             $expected,
             $actual,
-            "WRONG CURRENT STATUS {$newStatus['EN']} - {$newStatus['RU']}");
+            "WRONG CURRENT STATUS $newStatus");
     }
 
-    /*
-    TODO +
-    проверить, что попытке присвоить неправильный статус задаче -
-    выкинет ошибку
-    */
-    public function testSetWrongNewTaskStatus() {
-        $this->expectException(\Throwable::class);
-        $this->taskInst->setNewStatus(['EN' => '1a2s3d', 'RU' => '1a2s3d']);
-    }
-
-    /*
-    TODO +
-    проверить, что возвращаются список всех коснстант статусов задачи
-    */
     public function testGetAllStatuses() {
 
-        $expected = self::getClassConstants(Task::class)[self::PREFIX_STATUS];
+        $expected = current(
+            self::getClassConstants(Task::class)[self::PREFIX_STATUSES]
+        );
+
         $actual = $this->taskInst->getAllStatuses();
 
         $this->assertEquals(
@@ -155,12 +147,11 @@ class TaskTest extends TestCase {
         );
     }
 
-    /*
-    TODO +
-    проверить, что возвращаются список всех констант действий задачи
-    */
     public function testGetAllActions() {
-        $expected = self::getClassConstants(Task::class)[self::PREFIX_ACTION];
+        $expected = current(
+            self::getClassConstants(Task::class)[self::PREFIX_ACTIONS]
+        );
+
         $actual = $this->taskInst->getAllActions();
 
         $this->assertEquals(
@@ -170,181 +161,151 @@ class TaskTest extends TestCase {
         );
     }
 
-    /*
-    TODO +
-    проверить, что не нарушена целостность карты MAP_STATUS_ACTION
-    */
-    public function testStructureMapStatusAction() {
-
-        $expectedMapConstant =
-            self::getClassConstants(Task::class)[self::PREFIX_MAP];
-
-        $expectedMapConstantValue = current($expectedMapConstant);
-
-        $expectedStatusConstantsArr = array_values(
-            self::getClassConstants(Task::class)[self::PREFIX_STATUS]
-        );
-
-        $expectedStatusConstantsStr =
-            array_column($expectedStatusConstantsArr, 'EN');
-
-        $expectedActionConstantsArr = array_values(
-            self::getClassConstants(Task::class)[self::PREFIX_ACTION]
-        );
-
-        $expectedActionConstantsStr =
-            array_column($expectedActionConstantsArr, 'EN');
-
-        /*---------------------------------------------------------*/
-
-        $actualMapConstant = $this->taskInst->getMapStatusAction();
-        $actualMapConstantValue = current($actualMapConstant);
-        $actualStatusesToActions = array_values($actualMapConstantValue);
-        $actualStatusesStr = array_keys($actualMapConstantValue);
-        $actualActionArrs = array_column($actualMapConstantValue, 'actions');
-        $actualActionsStr = array_reduce(
-            $actualActionArrs,
-            function ($curry, $oneActualActionArr) {
-                $curry = array_merge($curry, array_keys($oneActualActionArr));
-                return $curry;
-            },
-            array()
-        );
-
-        /*---------------------------------------------------------*/
-
-        // вся карта массив
-        $this->assertIsArray(
-            $expectedMapConstant, 'MAP_STATUS_ACTION IS NOT ARRAY'
-        );
-
-        // основное значение карты под ключом MAP_STATUS_ACTION - массив
-        $this->assertIsArray(
-            $expectedMapConstantValue, 'MAP_STATUS_ACTION VALUE IS NOT ARRAY'
-        );
-
-        // с каждым статусом в карте связан массив действий
-        foreach ($actualStatusesToActions as $oneStatusToAction) {
-            $this->assertIsArray(
-                $oneStatusToAction,
-                'STATUS TO ACTION IS NOT ARRAY'
-            );
-        }
-
-        // статусы в карте 'EN' = константы статусов в классе 'EN'
-        foreach ($actualStatusesStr as $oneStatusConstantStr) {
-            $this->assertContains(
-                $oneStatusConstantStr,
-                $expectedStatusConstantsStr
-            );
-        }
-
-        // actions, которые связаны со статусом - массив
-        foreach ($actualActionArrs as $oneActualActionArr) {
-            $this->assertIsArray(
-                $oneActualActionArr,
-                'ACTIONS IS ONT ARRAY'
-            );
-        }
-
-        // действия в карте 'EN' =  констаты действий в классе 'EN'
-        foreach ($actualActionsStr as $oneActionConstantStr) {
-            $this->assertContains(
-                $oneActionConstantStr,
-                $expectedActionConstantsStr
-            );
-        }
-
-    }
-
-
-    /*
-    TODO +
-    проверить, что для указанного статуса возвращается верный список действий
-    */
+    /**
+     * @return array DataSet for 'testGetActionsByStatus' test
+     */
     public function dataActionsForStatus() {
 
         $dataSet = [];
         $expectedMapConstants =
-            current(self::getClassConstants(Task::class)[self::PREFIX_MAP]);
-        $allExpectedStatusConstants =
-            self::getClassConstants(Task::class)[self::PREFIX_STATUS];
-        $allExpectedActionConstants =
-            self::getClassConstants(Task::class)[self::PREFIX_ACTION];
+            self::getClassConstants(Task::class)[self::PREFIX_MAP];
 
-        foreach ($expectedMapConstants as $statusKeyEn => $statusInfo) {
+        $statusActionConstants = current(array_filter(
+            $expectedMapConstants,
+            function ($nameConstant) {
+                $wordsOfNameConstant = explode('_', $nameConstant);
+                return $wordsOfNameConstant[1] === self::PREFIX_STATUS;
+            },
+            ARRAY_FILTER_USE_KEY
+        ));
 
-            $oneFilteredExpectedStatusConstant =
-                array_filter(
-                    $allExpectedStatusConstants,
-                    function ($oneExpectedStatus) use ($statusKeyEn) {
-                        return $oneExpectedStatus['EN'] === $statusKeyEn;
-                    }
-                );
-
-            $oneFilteredExpectedStatus =
-                current($oneFilteredExpectedStatusConstant);
-
-            $actionsByStatusStr = array_keys($statusInfo['actions']);
-
-            if (count($actionsByStatusStr) === 0) {
-                array_push(
-                    $dataSet,
-                    [$oneFilteredExpectedStatus, null]
-                );
-                continue;
-            }
-
-            $actionsByStatus = array_reduce(
-                $actionsByStatusStr,
-
-                function ($curry, $oneActionByStatusStr) use ($allExpectedActionConstants) {
-                    $oneActionArr = array_filter(
-
-                        $allExpectedActionConstants,
-                        function ($oneAction) use ($oneActionByStatusStr) {
-                            return $oneAction['EN'] === $oneActionByStatusStr;
-                        }
-
-                    );
-                    array_push($curry, current($oneActionArr));
-                    return $curry;
-                },
-
-                array()
-            );
-
-            array_push(
-                $dataSet,
-                [$oneFilteredExpectedStatus, $actionsByStatus]
-            );
-
-        };
+        foreach ($statusActionConstants as $status => $actions) {
+            array_push($dataSet, [$status, $actions]);
+        }
 
         return $dataSet;
     }
 
     /**
+     * @param string $status
+     * @param array $expectedActions
      * @dataProvider dataActionsForStatus
      */
     public function testGetActionsByStatus($status, $expectedActions) {
+
         $actualActions = $this->taskInst->getActionsByStatus($status);
         $this->assertEquals(
             $expectedActions,
             $actualActions,
-            "WRONG ACTIONS FOR STATUS - {$status['EN']}"
+            "WRONG ACTIONS FOR STATUS - $status"
         );
     }
 
-    /*
-TODO -
-проверить , что по заданному ACTION возвращается верный STATUS
-*/
-    public function testGetStatusAfterAction() {
-        $this->markTestIncomplete(
-            'AWAITING IMPLEMENTATION'
-        );
+    /**
+     * @return array DataSet for 'testGetStatusAfterAction' test
+     */
+    public function dataStatusForAction() {
+
+        $dataSet = [];
+        $expectedMapConstants =
+            self::getClassConstants(Task::class)[self::PREFIX_MAP];
+
+        $actionStatusConstants = current(array_filter(
+            $expectedMapConstants,
+            function ($nameConstant) {
+                $wordsOfNameConstant = explode('_', $nameConstant);
+                return $wordsOfNameConstant[1] === self::PREFIX_ACTION;
+            },
+            ARRAY_FILTER_USE_KEY
+        ));
+
+        foreach ($actionStatusConstants as $action => $status) {
+            array_push($dataSet, [$action, $status]);
+        }
+
+
+        return $dataSet;
     }
 
+    /**
+     * @param string $action
+     * @param string $expectedStatus
+     * @dataProvider dataStatusForAction
+     */
+    public function testGetStatusAfterAction($action, $expectedStatus) {
+
+        $actualStatus = $this->taskInst->getStatusAfterAction($action);
+        $this->assertEquals(
+            $expectedStatus,
+            $actualStatus,
+            "WRONG STATUS $actualStatus AFTER ACTION $action"
+        );
+
+    }
+
+    public function testStructureMapStatusActions() {
+
+        $actualMapStatusActions = $this->taskInst->getMapStatusAction();
+        $this->assertIsArray(
+            $actualMapStatusActions,
+            'MAP STATUS ACTIONS MUST BE ARRAY'
+        );
+
+        foreach ($actualMapStatusActions as $arrActions) {
+            $this->assertIsArray(
+                $arrActions,
+                'ACTIONS IN MAP MUST BE ARRAY'
+            );
+        }
+
+        $expectedStatuses = array_values(
+            self::getClassConstants(Task::class)[self::PREFIX_STATUS]
+        );
+
+        $actualStatusesFromMap = array_keys($actualMapStatusActions);
+
+        sort($expectedStatuses);
+        sort($actualStatusesFromMap);
+
+        $this->assertEquals(
+            $expectedStatuses,
+            $actualStatusesFromMap,
+            'WRONG INITIAL KEYS IN MAP STATUS ACTIONS'
+        );
+
+    }
+
+    public function testStructureMapActionStatus() {
+
+        $actualMapActionStatus = $this->taskInst->getMapActionStatus();
+        $this->assertIsArray(
+            $actualMapActionStatus,
+            'MAP ACTION STATUS MUST BE ARRAY'
+        );
+
+        foreach ($actualMapActionStatus as $status) {
+            $this->assertIsString(
+                $status,
+                'STATUS MUST BE STRING'
+            );
+        }
+
+        $expectedActions = array_values(
+            self::getClassConstants(Task::class)[self::PREFIX_ACTION]
+        );
+
+
+        $actualActionsFromMap = array_keys($actualMapActionStatus);
+
+
+        sort($expectedActions);
+        sort($actualActionsFromMap);
+
+        $this->assertEquals(
+            $expectedActions,
+            $actualActionsFromMap,
+            'WRONG INITIAL KEYS IN MAP ACTION STATUS'
+        );
+    }
 
 }
