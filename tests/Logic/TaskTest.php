@@ -3,21 +3,21 @@
 namespace Test;
 
 use PHPUnit\Framework\TestCase;
-use TForce\Task;
+use TForce\Logic\Task;
 
 define('ROOT', getcwd());
 
-require_once ROOT . DIRECTORY_SEPARATOR
-    . 'vendor' . DIRECTORY_SEPARATOR
-    . 'autoload.php';
+require_once ROOT . DIRECTORY_SEPARATOR . 'vendor' .
+    DIRECTORY_SEPARATOR . 'autoload.php';
 
 /**
  * Class TaskTest
  * @package Test
  */
-class TaskTest extends TestCase {
+class TaskTest extends TestCase
+{
 
-    /** @var \TForce\Task */
+    /** @var \TForce\Logic\Task */
     private $taskInst;
 
     const PREFIX_STATUS = 'STATUS';
@@ -29,11 +29,13 @@ class TaskTest extends TestCase {
     const PREFIX_MAP = 'MAP';
 
 
-    public function setUp() {
+    public function setUp()
+    {
         $this->taskInst = new Task(2, 3);
     }
 
-    public function tearDown() {
+    public function tearDown()
+    {
         $this->taskInst = null;
     }
 
@@ -42,14 +44,13 @@ class TaskTest extends TestCase {
      * @param string $filterPrefix
      * @return array Constant's collection of certain type
      */
-    public static function filterClassConstants($classConstants, $filterPrefix) {
+    public static function filterClassConstants($classConstants, $filterPrefix)
+    {
         return array_filter(
             $classConstants,
             function ($constName) use ($filterPrefix) {
-
                 $constPrefix = explode('_', $constName)[0];
                 return ($constPrefix === $filterPrefix) ? true : false;
-
             },
             ARRAY_FILTER_USE_KEY
         );
@@ -59,7 +60,8 @@ class TaskTest extends TestCase {
      * @param string $className
      * @return array All Constant's collections
      */
-    public static function getClassConstants($className) {
+    public static function getClassConstants($className)
+    {
 
         $allConstants = (new \ReflectionClass(Task::class))->getConstants();
 
@@ -77,25 +79,28 @@ class TaskTest extends TestCase {
         ];
     }
 
-    public function testCreateTaskWithoutCustomerIdOrExecutorId() {
+    public function testCreateTaskWithoutCustomerIdOrExecutorId()
+    {
         $this->expectException(\Throwable::class);
         new Task(2);
     }
 
-    public function testStatusOfNewTask() {
+    public function testStatusOfNewTask()
+    {
         $expected = 'new';
         $actual = mb_strtolower($this->taskInst->getCurStatus());
         $this->assertEquals(
             $expected,
             $actual,
-            'WRONG STATUS OF NEW TFORCE\TASK'
+            'WRONG STATUS OF NEW TForce\Logic\TASK'
         );
     }
 
     /**
      * @return array DataSet for 'testGetCurStatus' test
      */
-    public function dataStatusesForTask() {
+    public function dataStatusesForTask()
+    {
 
         $onlyStatusConstants =
             self::getClassConstants(Task::class)[self::PREFIX_STATUS];
@@ -116,7 +121,8 @@ class TaskTest extends TestCase {
      * @param string $newStatus
      * @dataProvider dataStatusesForTask
      */
-    public function testGetCurStatus(string $newStatus) {
+    public function testGetCurStatus(string $newStatus)
+    {
 
         $reflectionClass = new \ReflectionClass(Task::class);
         $reflectionProperty = $reflectionClass->getProperty('curStatus');
@@ -129,10 +135,12 @@ class TaskTest extends TestCase {
         $this->assertEquals(
             $expected,
             $actual,
-            "WRONG CURRENT STATUS $newStatus");
+            "WRONG CURRENT STATUS $newStatus"
+        );
     }
 
-    public function testGetAllStatuses() {
+    public function testGetAllStatuses()
+    {
 
         $expected = current(
             self::getClassConstants(Task::class)[self::PREFIX_STATUSES]
@@ -147,7 +155,8 @@ class TaskTest extends TestCase {
         );
     }
 
-    public function testGetAllActions() {
+    public function testGetAllActions()
+    {
         $expected = current(
             self::getClassConstants(Task::class)[self::PREFIX_ACTIONS]
         );
@@ -164,20 +173,23 @@ class TaskTest extends TestCase {
     /**
      * @return array DataSet for 'testGetActionsByStatus' test
      */
-    public function dataActionsForStatus() {
+    public function dataActionsForStatus()
+    {
 
         $dataSet = [];
         $expectedMapConstants =
             self::getClassConstants(Task::class)[self::PREFIX_MAP];
 
-        $statusActionConstants = current(array_filter(
-            $expectedMapConstants,
-            function ($nameConstant) {
-                $wordsOfNameConstant = explode('_', $nameConstant);
-                return $wordsOfNameConstant[1] === self::PREFIX_STATUS;
-            },
-            ARRAY_FILTER_USE_KEY
-        ));
+        $statusActionConstants = current(
+            array_filter(
+                $expectedMapConstants,
+                function ($nameConstant) {
+                    $wordsOfNameConstant = explode('_', $nameConstant);
+                    return $wordsOfNameConstant[1] === self::PREFIX_STATUS;
+                },
+                ARRAY_FILTER_USE_KEY
+            )
+        );
 
         foreach ($statusActionConstants as $status => $actions) {
             array_push($dataSet, [$status, $actions]);
@@ -191,7 +203,8 @@ class TaskTest extends TestCase {
      * @param array $expectedActions
      * @dataProvider dataActionsForStatus
      */
-    public function testGetActionsByStatus($status, $expectedActions) {
+    public function testGetActionsByStatus($status, $expectedActions)
+    {
 
         $actualActions = $this->taskInst->getActionsByStatus($status);
         $this->assertEquals(
@@ -204,20 +217,23 @@ class TaskTest extends TestCase {
     /**
      * @return array DataSet for 'testGetStatusAfterAction' test
      */
-    public function dataStatusForAction() {
+    public function dataStatusForAction()
+    {
 
         $dataSet = [];
         $expectedMapConstants =
             self::getClassConstants(Task::class)[self::PREFIX_MAP];
 
-        $actionStatusConstants = current(array_filter(
-            $expectedMapConstants,
-            function ($nameConstant) {
-                $wordsOfNameConstant = explode('_', $nameConstant);
-                return $wordsOfNameConstant[1] === self::PREFIX_ACTION;
-            },
-            ARRAY_FILTER_USE_KEY
-        ));
+        $actionStatusConstants = current(
+            array_filter(
+                $expectedMapConstants,
+                function ($nameConstant) {
+                    $wordsOfNameConstant = explode('_', $nameConstant);
+                    return $wordsOfNameConstant[1] === self::PREFIX_ACTION;
+                },
+                ARRAY_FILTER_USE_KEY
+            )
+        );
 
         foreach ($actionStatusConstants as $action => $status) {
             array_push($dataSet, [$action, $status]);
@@ -232,7 +248,8 @@ class TaskTest extends TestCase {
      * @param string $expectedStatus
      * @dataProvider dataStatusForAction
      */
-    public function testGetStatusAfterAction($action, $expectedStatus) {
+    public function testGetStatusAfterAction($action, $expectedStatus)
+    {
 
         $actualStatus = $this->taskInst->getStatusAfterAction($action);
         $this->assertEquals(
@@ -243,7 +260,8 @@ class TaskTest extends TestCase {
 
     }
 
-    public function testStructureMapStatusActions() {
+    public function testStructureMapStatusActions()
+    {
 
         $actualMapStatusActions = $this->taskInst->getMapStatusAction();
         $this->assertIsArray(
@@ -252,10 +270,7 @@ class TaskTest extends TestCase {
         );
 
         foreach ($actualMapStatusActions as $arrActions) {
-            $this->assertIsArray(
-                $arrActions,
-                'ACTIONS IN MAP MUST BE ARRAY'
-            );
+            $this->assertIsArray($arrActions, 'ACTIONS IN MAP MUST BE ARRAY');
         }
 
         $expectedStatuses = array_values(
@@ -275,7 +290,8 @@ class TaskTest extends TestCase {
 
     }
 
-    public function testStructureMapActionStatus() {
+    public function testStructureMapActionStatus()
+    {
 
         $actualMapActionStatus = $this->taskInst->getMapActionStatus();
         $this->assertIsArray(
@@ -284,19 +300,13 @@ class TaskTest extends TestCase {
         );
 
         foreach ($actualMapActionStatus as $status) {
-            $this->assertIsString(
-                $status,
-                'STATUS MUST BE STRING'
-            );
+            $this->assertIsString($status, 'STATUS MUST BE STRING');
         }
 
         $expectedActions = array_values(
             self::getClassConstants(Task::class)[self::PREFIX_ACTION]
         );
-
-
         $actualActionsFromMap = array_keys($actualMapActionStatus);
-
 
         sort($expectedActions);
         sort($actualActionsFromMap);

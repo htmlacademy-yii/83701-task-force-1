@@ -6,10 +6,10 @@ declare(strict_types=1);
 // enable composer autoload
 require_once '../vendor/autoload.php';
 
-use TForce\Task;
+use TForce\Logic\Task;
 
 $taskInstance = new Task(2,3);
 
 echo "<br>" . __FILE__ . " --- " . __LINE__ . "<pre>";
-var_dump($taskInstance->getActionsByStatus(Task::STATUS_CANCELED));
+var_dump($taskInstance->getActionsByStatus(Task::STATUS_WORKING));
 echo  "</pre><br>";
