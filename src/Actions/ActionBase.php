@@ -8,20 +8,20 @@ abstract class ActionBase
     public function __get($actionName)
     {
         throw new \Exception(
-            'you are in' . self::class .
-            'Please extend and create your own Action::class'
+            ' You are in ' . self::class . ' .'.
+            ' Please extend and create your own Action::class! '
         );
     }
 
     public function __set($actionName, $value)
     {
         throw new \Exception(
-            'you are in' . self::class .
-            'Please extend and create your own Action::class'
+            ' You are in ' . self::class . ' .'.
+            ' Please extend and create your own Action::class! '
         );
     }
 
-    abstract function getPublicName();
+    abstract function getCommonName();
 
     abstract function getInnerName();
 

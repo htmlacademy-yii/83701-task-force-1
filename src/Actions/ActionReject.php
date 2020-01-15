@@ -9,7 +9,7 @@ class ActionReject extends ActionBase
     private $publicName = 'Отказаться';
     private $innerName = 'act_reject';
 
-    public function getPublicName()
+    public function getCommonName()
     {
         return $this->publicName;
     }

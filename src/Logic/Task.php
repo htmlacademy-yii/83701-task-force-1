@@ -1,6 +1,11 @@
 <?php
 namespace TForce\Logic;
 
+use TForce\Actions\{
+    ActionCancel, ActionComplete, ActionReject, ActionRespond
+};
+
+
 /**
  * Class Task
  * @package TForce\Logic
@@ -26,13 +31,6 @@ class Task
     const ACTION_RESPOND = 'respond';
     const ACTION_COMPLETE = 'complete';
     const ACTION_REJECT = 'reject';
-
-    const ACTIONS = [
-        self::ACTION_CANCEL   => 'отменить',
-        self::ACTION_RESPOND  => 'откликнуться',
-        self::ACTION_COMPLETE => 'завершить',
-        self::ACTION_REJECT   => 'отказаться'
-    ];
 
     const MAP_STATUS_ACTION = [
         self::STATUS_NEW      => [self::ACTION_CANCEL, self:: ACTION_RESPOND],
@@ -60,17 +58,25 @@ class Task
     private $executorId;
     private $customerId;
     private $timeEnd;
+    public $actionObjects;
 
     /**
      * Task constructor.
      * @param int $executorId
      * @param int $customerId
      */
-    public function __construct(int $executorId, int $customerId)
+    public function __construct(int $customerId, int $executorId)
     {
         $this->executorId = $executorId;
         $this->customerId = $customerId;
         $this->curStatus = self::STATUS_NEW;
+
+        $this->actionObjects = [
+            self::ACTION_CANCEL   => new ActionCancel(),
+            self::ACTION_RESPOND  => new ActionRespond(),
+            self::ACTION_COMPLETE => new ActionComplete(),
+            self::ACTION_REJECT   => new ActionReject()
+        ];
     }
 
     /**
@@ -102,7 +108,7 @@ class Task
      */
     public function getAllActions(): array
     {
-        return self::ACTIONS;
+        return $this->actionObjects;
     }
 
     /**
@@ -126,9 +132,25 @@ class Task
      * @param string $status
      * @return array All actions for corresponding status
      */
-    public function getActionsByStatus(string $status): array
+    public function getActionsByStatus(int $curUser_id, string $status): array
     {
-        return self::MAP_STATUS_ACTION[$status];
+        $actionStrings = self::MAP_STATUS_ACTION[$status];
+        $objActions = [];
+
+        foreach ($actionStrings as $stringAction) {
+            if (
+                array_key_exists($stringAction, $this->actionObjects) &&
+                $this->actionObjects[$stringAction]->isAvailable(
+                    $curUser_id,
+                    $this->customerId,
+                    $this->executorId
+                )
+            ) {
+                $objActions[$stringAction] = $this->actionObjects[$stringAction];
+            }
+        }
+
+        return $objActions;
     }
 
 }

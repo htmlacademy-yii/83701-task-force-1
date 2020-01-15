@@ -10,7 +10,7 @@ class ActionComplete extends ActionBase
     private $publicName = 'Завершить';
     private $innerName = 'act_complete';
 
-    public function getPublicName()
+    public function getCommonName()
     {
         return $this->publicName;
     }
@@ -22,5 +22,6 @@ class ActionComplete extends ActionBase
 
     public function isAvailable($curUser_id, $customer_id, $executor_id)
     {
+        return $curUser_id === $customer_id;
     }
 }

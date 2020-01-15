@@ -10,7 +10,7 @@ class ActionCancel extends ActionBase
     private $publicName = 'Отменить';
     private $innerName = 'act_complete';
 
-    public function getPublicName()
+    public function getCommonName()
     {
         return $this->publicName;
     }

@@ -9,7 +9,7 @@ class ActionRespond extends ActionBase
     private $publicName = 'Откликнуться';
     private $innerName = 'act_complete';
 
-    public function getPublicName()
+    public function getCommonName()
     {
         return $this->publicName;
     }
