@@ -175,7 +175,7 @@ class TaskTest extends TestCase
             'WRONG RETURNED ALL ACTIONS FROM CLASS!'
         );
     }
-    
+
     /**
      * @return array DataSet for 'testGetActionsByStatus' test
      */
