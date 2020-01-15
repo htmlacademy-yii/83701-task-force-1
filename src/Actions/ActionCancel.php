@@ -8,7 +8,7 @@ use TForce\Actions\ActionBase;
 class ActionCancel extends ActionBase
 {
     private const PUBLIC_NAME = 'Отменить';
-    private const INNER_NAME = 'act_complete';
+    private const INNER_NAME = 'act_cancel';
 
     public function getCommonName()
     {

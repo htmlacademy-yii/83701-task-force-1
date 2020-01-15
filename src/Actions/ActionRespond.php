@@ -7,7 +7,7 @@ use TForce\Actions\ActionBase;
 class ActionRespond extends ActionBase
 {
     private const PUBLIC_NAME = 'Откликнуться';
-    private const INNER_NAME = 'act_complete';
+    private const INNER_NAME = 'act_respond';
 
     public function getCommonName()
     {
