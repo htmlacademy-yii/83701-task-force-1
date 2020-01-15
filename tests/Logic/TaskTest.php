@@ -4,6 +4,9 @@ namespace Test;
 
 use PHPUnit\Framework\TestCase;
 use TForce\Logic\Task;
+use TForce\Actions\{
+    ActionCancel, ActionComplete, ActionReject, ActionRespond
+};
 
 define('ROOT', getcwd());
 
@@ -19,6 +22,8 @@ class TaskTest extends TestCase
 
     /** @var \TForce\Logic\Task */
     private $taskInst;
+    private $test_executor_id;
+    private $test_customer_id;
 
     const PREFIX_STATUS = 'STATUS';
     const PREFIX_STATUSES = 'STATUSES';
@@ -31,7 +36,9 @@ class TaskTest extends TestCase
 
     public function setUp()
     {
-        $this->taskInst = new Task(2, 3);
+        $this->test_customer_id = 2;
+        $this->test_executor_id = 3;
+        $this->taskInst = new Task($this->test_customer_id, $this->test_executor_id);
     }
 
     public function tearDown()
@@ -157,9 +164,8 @@ class TaskTest extends TestCase
 
     public function testGetAllActions()
     {
-        $expected = current(
-            self::getClassConstants(Task::class)[self::PREFIX_ACTIONS]
-        );
+
+        $expected = $this->taskInst->actionObjects;
 
         $actual = $this->taskInst->getAllActions();
 
@@ -169,7 +175,7 @@ class TaskTest extends TestCase
             'WRONG RETURNED ALL ACTIONS FROM CLASS!'
         );
     }
-
+    
     /**
      * @return array DataSet for 'testGetActionsByStatus' test
      */
@@ -191,8 +197,8 @@ class TaskTest extends TestCase
             )
         );
 
-        foreach ($statusActionConstants as $status => $actions) {
-            array_push($dataSet, [$status, $actions]);
+        foreach ($statusActionConstants as $status => $stringActions) {
+            array_push($dataSet, [$status, $stringActions]);
         }
 
         return $dataSet;
@@ -200,16 +206,84 @@ class TaskTest extends TestCase
 
     /**
      * @param string $status
-     * @param array $expectedActions
+     * @param array $expectedStringActions
      * @dataProvider dataActionsForStatus
      */
-    public function testGetActionsByStatus($status, $expectedActions)
+    public function testGetActionsByStatusWithAnotherId($status, $expectedStringActions)
+    {
+        $anotherUserId = -1;
+        $actualObjActions = $this->taskInst->getActionsByStatus($anotherUserId, $status);
+
+        $this->assertEquals(
+            [],
+            $actualObjActions,
+            "WRONG ACTIONS FOR STATUS - $status"
+        );
+    }
+
+
+    /**
+     * @param string $status
+     * @param array $expectedStringActions
+     * @dataProvider dataActionsForStatus
+     */
+    public function testGetActionsByStatusWithExecutorId($status, $expectedStringActions)
     {
 
-        $actualActions = $this->taskInst->getActionsByStatus($status);
+        if ($status === ($this->taskInst)::STATUS_NEW) {
+            $expectedObjActions = [
+                ($this->taskInst)::ACTION_RESPOND => new ActionRespond()
+            ];
+
+
+        } else if ($status === ($this->taskInst)::STATUS_WORKING) {
+            $expectedObjActions = [
+                ($this->taskInst)::ACTION_REJECT => new ActionReject()
+            ];
+
+
+        } else {
+            $expectedObjActions = [];
+        }
+
+        $actualObjActions = $this->taskInst->getActionsByStatus(
+            $this->test_executor_id, $status
+        );
+
         $this->assertEquals(
-            $expectedActions,
-            $actualActions,
+            $expectedObjActions,
+            $actualObjActions,
+            "WRONG ACTIONS FOR STATUS - $status"
+        );
+
+    }
+
+    /**
+     * @param string $status
+     * @param array $expectedStringActions
+     * @dataProvider dataActionsForStatus
+     */
+    public function testGetActionsByStatusWithCustomerId($status, $expectedStringActions)
+    {
+        if ($status === ($this->taskInst)::STATUS_NEW) {
+            $expectedObjActions = [
+                ($this->taskInst)::ACTION_CANCEL => new ActionCancel()
+            ];
+        } else if ($status === ($this->taskInst)::STATUS_WORKING) {
+            $expectedObjActions = [
+                ($this->taskInst)::ACTION_COMPLETE => new ActionComplete()
+            ];
+        } else {
+            $expectedObjActions = [];
+        }
+
+        $actualObjActions = $this->taskInst->getActionsByStatus(
+            $this->test_customer_id, $status
+        );
+
+        $this->assertEquals(
+            $expectedObjActions,
+            $actualObjActions,
             "WRONG ACTIONS FOR STATUS - $status"
         );
     }
