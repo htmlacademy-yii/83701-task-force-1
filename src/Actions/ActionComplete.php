@@ -7,17 +7,17 @@ use TForce\Actions\ActionBase;
 class ActionComplete extends ActionBase
 {
 
-    private $publicName = 'Завершить';
-    private $innerName = 'act_complete';
+    private const PUBLIC_NAME  = 'Завершить';
+    private const INNER_NAME  = 'act_complete';
 
     public function getCommonName()
     {
-        return $this->publicName;
+        return self::PUBLIC_NAME;
     }
 
     public function getInnerName()
     {
-        return $this->innerName;
+        return self::INNER_NAME;
     }
 
     public function isAvailable($curUser_id, $customer_id, $executor_id)

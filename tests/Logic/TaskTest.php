@@ -221,7 +221,6 @@ class TaskTest extends TestCase
         );
     }
 
-
     /**
      * @param string $status
      * @param array $expectedStringActions
@@ -230,15 +229,15 @@ class TaskTest extends TestCase
     public function testGetActionsByStatusWithExecutorId($status, $expectedStringActions)
     {
 
-        if ($status === ($this->taskInst)::STATUS_NEW) {
+        if ($status === Task::STATUS_NEW) {
             $expectedObjActions = [
-                ($this->taskInst)::ACTION_RESPOND => new ActionRespond()
+                Task::ACTION_RESPOND => new ActionRespond()
             ];
 
 
-        } else if ($status === ($this->taskInst)::STATUS_WORKING) {
+        } else if ($status =Task::STATUS_WORKING) {
             $expectedObjActions = [
-                ($this->taskInst)::ACTION_REJECT => new ActionReject()
+                Task::ACTION_REJECT => new ActionReject()
             ];
 
 
@@ -265,13 +264,13 @@ class TaskTest extends TestCase
      */
     public function testGetActionsByStatusWithCustomerId($status, $expectedStringActions)
     {
-        if ($status === ($this->taskInst)::STATUS_NEW) {
+        if ($status === Task::STATUS_NEW) {
             $expectedObjActions = [
-                ($this->taskInst)::ACTION_CANCEL => new ActionCancel()
+                Task::ACTION_CANCEL => new ActionCancel()
             ];
-        } else if ($status === ($this->taskInst)::STATUS_WORKING) {
+        } else if ($status === Task::STATUS_WORKING) {
             $expectedObjActions = [
-                ($this->taskInst)::ACTION_COMPLETE => new ActionComplete()
+                Task::ACTION_COMPLETE => new ActionComplete()
             ];
         } else {
             $expectedObjActions = [];
