@@ -22,8 +22,20 @@ class TaskTest extends TestCase
 
     /** @var \TForce\Logic\Task */
     private $taskInst;
-    private $test_executor_id;
-    private $test_customer_id;
+    private $test_customer_id = 2;
+    private $test_executor_id = 3;
+
+    /** @var \TForce\Actions\ActionBase */
+    public $actionComplete;
+
+    /** @var \TForce\Actions\ActionBase */
+    public $actionReject;
+
+    /** @var \TForce\Actions\ActionBase */
+    public $actionRespond;
+
+    /** @var \TForce\Actions\ActionBase */
+    public $actionCancel;
 
     const PREFIX_STATUS = 'STATUS';
     const PREFIX_STATUSES = 'STATUSES';
@@ -36,9 +48,15 @@ class TaskTest extends TestCase
 
     public function setUp()
     {
-        $this->test_customer_id = 2;
-        $this->test_executor_id = 3;
+//        $this->test_customer_id = 2;
+//        $this->test_executor_id = 3;
         $this->taskInst = new Task($this->test_customer_id, $this->test_executor_id);
+
+        $this->actionComplete = new ActionComplete();
+        $this->actionReject = new ActionReject();
+        $this->actionRespond = new ActionRespond();
+        $this->actionCancel = new ActionCancel();
+
     }
 
     public function tearDown()
@@ -165,7 +183,11 @@ class TaskTest extends TestCase
     public function testGetAllActions()
     {
 
-        $expected = $this->taskInst->actionObjects;
+        $reflectionObj = new \ReflectionObject($this->taskInst);
+        $reflectionProperty = $reflectionObj->getProperty('actionObjects');
+        $reflectionProperty->setAccessible(true);
+        $expected = $reflectionProperty->getValue($this->taskInst);
+        $reflectionProperty->setAccessible(false);
 
         $actual = $this->taskInst->getAllActions();
 
@@ -235,7 +257,7 @@ class TaskTest extends TestCase
             ];
 
 
-        } else if ($status =Task::STATUS_WORKING) {
+        } else if ($status = Task::STATUS_WORKING) {
             $expectedObjActions = [
                 Task::ACTION_REJECT => new ActionReject()
             ];
@@ -294,24 +316,22 @@ class TaskTest extends TestCase
     {
 
         $dataSet = [];
-        $expectedMapConstants =
-            self::getClassConstants(Task::class)[self::PREFIX_MAP];
 
-        $actionStatusConstants = current(
-            array_filter(
-                $expectedMapConstants,
-                function ($nameConstant) {
-                    $wordsOfNameConstant = explode('_', $nameConstant);
-                    return $wordsOfNameConstant[1] === self::PREFIX_ACTION;
-                },
-                ARRAY_FILTER_USE_KEY
-            )
-        );
+        $arrActionObjects = [
+            new ActionComplete(),
+            new ActionCancel(),
+            new ActionReject(),
+            new ActionRespond()
+        ];
 
-        foreach ($actionStatusConstants as $action => $status) {
-            array_push($dataSet, [$action, $status]);
+        $taskInst = new Task($this->test_customer_id, $this->test_executor_id);
+        $map_action_status = $taskInst::$MAP_ACTION_STATUS;
+
+        foreach ($arrActionObjects as $oneActionObj) {
+            $actionInnerName = $oneActionObj->getInnerName();
+            $statusForAction = $map_action_status[$actionInnerName];
+            array_push($dataSet, [$oneActionObj, $statusForAction]);
         }
-
 
         return $dataSet;
     }
@@ -328,7 +348,7 @@ class TaskTest extends TestCase
         $this->assertEquals(
             $expectedStatus,
             $actualStatus,
-            "WRONG STATUS $actualStatus AFTER ACTION $action"
+            "WRONG STATUS $actualStatus AFTER ACTION " . $action->getInnerName()
         );
 
     }
@@ -376,9 +396,13 @@ class TaskTest extends TestCase
             $this->assertIsString($status, 'STATUS MUST BE STRING');
         }
 
-        $expectedActions = array_values(
-            self::getClassConstants(Task::class)[self::PREFIX_ACTION]
-        );
+        $expectedActions = [
+            $this->actionCancel->getInnerName(),
+            $this->actionComplete->getInnerName(),
+            $this->actionReject->getInnerName(),
+            $this->actionRespond->getInnerName(),
+        ];
+
         $actualActionsFromMap = array_keys($actualMapActionStatus);
 
         sort($expectedActions);

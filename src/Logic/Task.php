@@ -4,6 +4,7 @@ namespace TForce\Logic;
 use TForce\Actions\{
     ActionBase, ActionCancel, ActionComplete, ActionReject, ActionRespond
 };
+use TForce\Exceptions\TForceException;
 
 
 /**
@@ -50,12 +51,30 @@ class Task
      * Task constructor.
      * @param int $executorId
      * @param int $customerId
+     * @param string|null $status
      */
-    public function __construct(int $customerId, int $executorId)
+    public function __construct(int $customerId, int $executorId, string $status = null)
     {
+
+        if ($customerId === $executorId) {
+            throw new TForceException(
+                'ID of customer must not be equal ID of executor'
+            );
+        }
+
+        $status = $status ?? self::STATUS_NEW;
+
+        if (!array_key_exists($status, self::STATUSES)) {
+            throw new TForceException(
+                'Available status is only one from: ' .
+                implode(', ', array_keys(self::STATUSES))
+            );
+        }
+
+        $this->curStatus = $status;
         $this->executorId = $executorId;
         $this->customerId = $customerId;
-        $this->curStatus = self::STATUS_NEW;
+
 
         self::$ACTION_CANCEL = new ActionCancel();
         self::$ACTION_RESPOND = new ActionRespond();
@@ -141,6 +160,13 @@ class Task
      */
     public function getActionsByStatus(int $curUser_id, string $status): array
     {
+        if (!array_key_exists($status, self::STATUSES)) {
+            throw new TForceException(
+                'Available status is only one from: ' .
+                implode(', ', array_keys(self::STATUSES))
+            );
+        }
+
         $objActions = self::$MAP_STATUS_ACTION[$status];
 
         return array_filter(
@@ -153,7 +179,6 @@ class Task
                 );
             }
         );
-
 
     }
 

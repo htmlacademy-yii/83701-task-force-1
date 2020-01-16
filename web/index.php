@@ -11,7 +11,7 @@ use TForce\Logic\Task;
 
 $taskInstance = new Task(2, 3);
 
-$x7 = $taskInstance->getActionsByStatus(3, Task::STATUS_NEW);
+$x7 = $taskInstance->getCurStatus();
 
 echo "<br>" . __FILE__ . " --- " . __LINE__ . "<pre>";
 var_dump($x7);
