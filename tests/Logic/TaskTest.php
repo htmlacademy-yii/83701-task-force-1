@@ -7,6 +7,7 @@ use TForce\Logic\Task;
 use TForce\Actions\{
     ActionCancel, ActionComplete, ActionReject, ActionRespond
 };
+use TForce\Exceptions\TForceException;
 
 define('ROOT', getcwd());
 
@@ -22,8 +23,20 @@ class TaskTest extends TestCase
 
     /** @var \TForce\Logic\Task */
     private $taskInst;
-    private $test_executor_id;
-    private $test_customer_id;
+    private $test_customer_id = 2;
+    private $test_executor_id = 3;
+
+    /** @var \TForce\Actions\ActionBase */
+    public $actionComplete;
+
+    /** @var \TForce\Actions\ActionBase */
+    public $actionReject;
+
+    /** @var \TForce\Actions\ActionBase */
+    public $actionRespond;
+
+    /** @var \TForce\Actions\ActionBase */
+    public $actionCancel;
 
     const PREFIX_STATUS = 'STATUS';
     const PREFIX_STATUSES = 'STATUSES';
@@ -36,9 +49,15 @@ class TaskTest extends TestCase
 
     public function setUp()
     {
-        $this->test_customer_id = 2;
-        $this->test_executor_id = 3;
+//        $this->test_customer_id = 2;
+//        $this->test_executor_id = 3;
         $this->taskInst = new Task($this->test_customer_id, $this->test_executor_id);
+
+        $this->actionComplete = new ActionComplete();
+        $this->actionReject = new ActionReject();
+        $this->actionRespond = new ActionRespond();
+        $this->actionCancel = new ActionCancel();
+
     }
 
     public function tearDown()
@@ -90,6 +109,18 @@ class TaskTest extends TestCase
     {
         $this->expectException(\Throwable::class);
         new Task(2);
+    }
+
+    public function testCreateTaskWithEqualCustomerIdAndExecutorId()
+    {
+        $this->expectException(TForceException::class);
+        new Task(2, 2);
+    }
+
+    public function testCreateTaskWithStrangeStatus()
+    {
+        $this->expectException(TForceException::class);
+        new Task(2, 2, 'ssttrraannggeeSsttaattuuss');
     }
 
     public function testStatusOfNewTask()
@@ -165,7 +196,11 @@ class TaskTest extends TestCase
     public function testGetAllActions()
     {
 
-        $expected = $this->taskInst->actionObjects;
+        $reflectionObj = new \ReflectionObject($this->taskInst);
+        $reflectionProperty = $reflectionObj->getProperty('actionObjects');
+        $reflectionProperty->setAccessible(true);
+        $expected = $reflectionProperty->getValue($this->taskInst);
+        $reflectionProperty->setAccessible(false);
 
         $actual = $this->taskInst->getAllActions();
 
@@ -175,117 +210,93 @@ class TaskTest extends TestCase
             'WRONG RETURNED ALL ACTIONS FROM CLASS!'
         );
     }
-    
-    /**
-     * @return array DataSet for 'testGetActionsByStatus' test
-     */
-    public function dataActionsForStatus()
+
+    public function testGetActionsByStatusWithStrangeId()
     {
+        $strangeUserId = -999;
+        $statuses = array_keys(Task::STATUSES);
 
-        $dataSet = [];
-        $expectedMapConstants =
-            self::getClassConstants(Task::class)[self::PREFIX_MAP];
+        foreach ($statuses as $oneStatus) {
+            $actualObjActions =
+                $this->taskInst->getActionsByStatus($strangeUserId, $oneStatus);
 
-        $statusActionConstants = current(
-            array_filter(
-                $expectedMapConstants,
-                function ($nameConstant) {
-                    $wordsOfNameConstant = explode('_', $nameConstant);
-                    return $wordsOfNameConstant[1] === self::PREFIX_STATUS;
-                },
-                ARRAY_FILTER_USE_KEY
-            )
-        );
-
-        foreach ($statusActionConstants as $status => $stringActions) {
-            array_push($dataSet, [$status, $stringActions]);
+            $this->assertEquals(
+                [],
+                $actualObjActions,
+                "WRONG ACTIONS FOR STATUS - $oneStatus"
+            );
         }
-
-        return $dataSet;
-    }
-
-    /**
-     * @param string $status
-     * @param array $expectedStringActions
-     * @dataProvider dataActionsForStatus
-     */
-    public function testGetActionsByStatusWithAnotherId($status, $expectedStringActions)
-    {
-        $anotherUserId = -1;
-        $actualObjActions = $this->taskInst->getActionsByStatus($anotherUserId, $status);
-
-        $this->assertEquals(
-            [],
-            $actualObjActions,
-            "WRONG ACTIONS FOR STATUS - $status"
-        );
-    }
-
-
-    /**
-     * @param string $status
-     * @param array $expectedStringActions
-     * @dataProvider dataActionsForStatus
-     */
-    public function testGetActionsByStatusWithExecutorId($status, $expectedStringActions)
-    {
-
-        if ($status === ($this->taskInst)::STATUS_NEW) {
-            $expectedObjActions = [
-                ($this->taskInst)::ACTION_RESPOND => new ActionRespond()
-            ];
-
-
-        } else if ($status === ($this->taskInst)::STATUS_WORKING) {
-            $expectedObjActions = [
-                ($this->taskInst)::ACTION_REJECT => new ActionReject()
-            ];
-
-
-        } else {
-            $expectedObjActions = [];
-        }
-
-        $actualObjActions = $this->taskInst->getActionsByStatus(
-            $this->test_executor_id, $status
-        );
-
-        $this->assertEquals(
-            $expectedObjActions,
-            $actualObjActions,
-            "WRONG ACTIONS FOR STATUS - $status"
-        );
 
     }
 
-    /**
-     * @param string $status
-     * @param array $expectedStringActions
-     * @dataProvider dataActionsForStatus
-     */
-    public function testGetActionsByStatusWithCustomerId($status, $expectedStringActions)
+    public function testGetActionsByStatusWithStrangeStatus()
     {
-        if ($status === ($this->taskInst)::STATUS_NEW) {
-            $expectedObjActions = [
-                ($this->taskInst)::ACTION_CANCEL => new ActionCancel()
-            ];
-        } else if ($status === ($this->taskInst)::STATUS_WORKING) {
-            $expectedObjActions = [
-                ($this->taskInst)::ACTION_COMPLETE => new ActionComplete()
-            ];
-        } else {
-            $expectedObjActions = [];
+
+        $this->expectException(TForceException::class);
+
+        $curUserId = $this->test_executor_id;
+        $strangeStatus = 'ssttrraannggeeSSttaattuuss';
+        $this->taskInst->getActionsByStatus($curUserId, $strangeStatus);
+
+    }
+
+    public function testGetActionsByStatusWithCustomerId()
+    {
+        $curUser_id = $this->test_customer_id;
+        $statuses = array_keys(Task::STATUSES);
+        $expectedAvailableActions = [
+            $this->actionCancel,
+            $this->actionComplete
+        ];
+        $actualAvailableActions = null;
+
+        foreach ($statuses as $oneStatus) {
+            $actualAvailableActions =
+                $this->taskInst->getActionsByStatus($curUser_id, $oneStatus);
         }
 
-        $actualObjActions = $this->taskInst->getActionsByStatus(
-            $this->test_customer_id, $status
+        $this->assertIsArray(
+            $actualAvailableActions,
+            'RETURNED ACTIONS BY STATUS MUST BE ARRAY'
         );
 
-        $this->assertEquals(
-            $expectedObjActions,
-            $actualObjActions,
-            "WRONG ACTIONS FOR STATUS - $status"
+        foreach ($actualAvailableActions as $oneActualAvailableAction) {
+            $this->assertTrue(
+                in_array($oneActualAvailableAction, $expectedAvailableActions),
+                'UNEXPECTED AVAILABLE ACTION BY STATUS WITH CUSTOMER ID'
+            );
+        }
+
+    }
+
+    public function testGetActionsByStatusWithExecutorId()
+    {
+        $curUser_id = $this->test_customer_id;
+        $statuses = array_keys(Task::STATUSES);
+        $expectedAvailableActions = [
+            $this->actionRespond,
+            $this->actionReject
+        ];
+
+        $actualAvailableActions = null;
+
+        foreach ($statuses as $oneStatus) {
+            $actualAvailableActions =
+                $this->taskInst->getActionsByStatus($curUser_id, $oneStatus);
+        }
+
+        $this->assertIsArray(
+            $actualAvailableActions,
+            'RETURNED ACTIONS BY STATUS MUST BE ARRAY'
         );
+
+        foreach ($actualAvailableActions as $oneActualAvailableAction) {
+            $this->assertTrue(
+                in_array($oneActualAvailableAction, $expectedAvailableActions),
+                'UNEXPECTED AVAILABLE ACTION BY STATUS WITH CUSTOMER ID'
+            );
+        }
+
     }
 
     /**
@@ -295,24 +306,22 @@ class TaskTest extends TestCase
     {
 
         $dataSet = [];
-        $expectedMapConstants =
-            self::getClassConstants(Task::class)[self::PREFIX_MAP];
 
-        $actionStatusConstants = current(
-            array_filter(
-                $expectedMapConstants,
-                function ($nameConstant) {
-                    $wordsOfNameConstant = explode('_', $nameConstant);
-                    return $wordsOfNameConstant[1] === self::PREFIX_ACTION;
-                },
-                ARRAY_FILTER_USE_KEY
-            )
-        );
+        $arrActionObjects = [
+            new ActionComplete(),
+            new ActionCancel(),
+            new ActionReject(),
+            new ActionRespond()
+        ];
 
-        foreach ($actionStatusConstants as $action => $status) {
-            array_push($dataSet, [$action, $status]);
+        $taskInst = new Task($this->test_customer_id, $this->test_executor_id);
+        $map_action_status = $taskInst::$MAP_ACTION_STATUS;
+
+        foreach ($arrActionObjects as $oneActionObj) {
+            $actionInnerName = $oneActionObj->getInnerName();
+            $statusForAction = $map_action_status[$actionInnerName];
+            array_push($dataSet, [$oneActionObj, $statusForAction]);
         }
-
 
         return $dataSet;
     }
@@ -329,7 +338,7 @@ class TaskTest extends TestCase
         $this->assertEquals(
             $expectedStatus,
             $actualStatus,
-            "WRONG STATUS $actualStatus AFTER ACTION $action"
+            "WRONG STATUS $actualStatus AFTER ACTION " . $action->getInnerName()
         );
 
     }
@@ -377,9 +386,13 @@ class TaskTest extends TestCase
             $this->assertIsString($status, 'STATUS MUST BE STRING');
         }
 
-        $expectedActions = array_values(
-            self::getClassConstants(Task::class)[self::PREFIX_ACTION]
-        );
+        $expectedActions = [
+            $this->actionCancel->getInnerName(),
+            $this->actionComplete->getInnerName(),
+            $this->actionReject->getInnerName(),
+            $this->actionRespond->getInnerName(),
+        ];
+
         $actualActionsFromMap = array_keys($actualMapActionStatus);
 
         sort($expectedActions);

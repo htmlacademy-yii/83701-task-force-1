@@ -2,12 +2,14 @@
 
 namespace TForce\Actions;
 
+use TForce\Exceptions\TForceException;
+
 abstract class ActionBase
 {
 
     public function __get($actionName)
     {
-        throw new \Exception(
+        throw new TForceException(
             ' You are in ' . self::class . ' .'.
             ' Please extend and create your own Action::class! '
         );
@@ -15,7 +17,7 @@ abstract class ActionBase
 
     public function __set($actionName, $value)
     {
-        throw new \Exception(
+        throw new TForceException(
             ' You are in ' . self::class . ' .'.
             ' Please extend and create your own Action::class! '
         );

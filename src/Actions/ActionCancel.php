@@ -7,17 +7,17 @@ use TForce\Actions\ActionBase;
 
 class ActionCancel extends ActionBase
 {
-    private $publicName = 'Отменить';
-    private $innerName = 'act_complete';
+    private const PUBLIC_NAME = 'Отменить';
+    private const INNER_NAME = 'act_cancel';
 
     public function getCommonName()
     {
-        return $this->publicName;
+        return self::PUBLIC_NAME;
     }
 
     public function getInnerName()
     {
-        return $this->innerName;
+        return self::INNER_NAME;
     }
 
     public function isAvailable($curUser_id, $customer_id, $executor_id)

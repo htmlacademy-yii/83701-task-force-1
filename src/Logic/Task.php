@@ -2,8 +2,9 @@
 namespace TForce\Logic;
 
 use TForce\Actions\{
-    ActionCancel, ActionComplete, ActionReject, ActionRespond
+    ActionBase, ActionCancel, ActionComplete, ActionReject, ActionRespond
 };
+use TForce\Exceptions\TForceException;
 
 
 /**
@@ -12,13 +13,6 @@ use TForce\Actions\{
  */
 class Task
 {
-
-    const STATUS_NEW = 'new';
-    const STATUS_CANCELED = 'canceled';
-    const STATUS_WORKING = 'working';
-    const STATUS_DONE = 'done';
-    const STATUS_FAILED = 'failed';
-
     const STATUSES = [
         self::STATUS_NEW      => 'новое',
         self::STATUS_CANCELED => 'отменено',
@@ -26,57 +20,89 @@ class Task
         self::STATUS_DONE     => 'выполнено',
         self::STATUS_FAILED   => 'провалено'
     ];
-
-    const ACTION_CANCEL = 'cancel';
-    const ACTION_RESPOND = 'respond';
-    const ACTION_COMPLETE = 'complete';
-    const ACTION_REJECT = 'reject';
-
-    const MAP_STATUS_ACTION = [
-        self::STATUS_NEW      => [self::ACTION_CANCEL, self:: ACTION_RESPOND],
-        self::STATUS_CANCELED => [],
-        self::STATUS_WORKING  => [self::ACTION_COMPLETE, self::ACTION_REJECT],
-        self::STATUS_DONE     => [],
-        self::STATUS_FAILED   => []
-    ];
-    const MAP_ACTION_STATUS = [
-        self::ACTION_CANCEL   => self::STATUS_CANCELED,
-        self::ACTION_RESPOND  => self::STATUS_WORKING,
-        self::ACTION_COMPLETE => self::STATUS_DONE,
-        self::ACTION_REJECT   => self::STATUS_FAILED
-    ];
-
+    const STATUS_NEW = 'new';
+    const STATUS_CANCELED = 'canceled';
+    const STATUS_WORKING = 'working';
+    const STATUS_DONE = 'done';
+    const STATUS_FAILED = 'failed';
     const ROLE_CUSTOMER = 'customer';
     const ROLE_EXECUTOR = 'executor';
-
     const ROLES = [
         self::ROLE_EXECUTOR => 'исполнитель',
         self::ROLE_CUSTOMER => 'заказчик'
     ];
 
+
+    static $ACTION_CANCEL;
+    static $ACTION_RESPOND;
+    static $ACTION_COMPLETE;
+    static $ACTION_REJECT;
+
+    static $MAP_STATUS_ACTION;
+    static $MAP_ACTION_STATUS;
+
     private $curStatus;
     private $executorId;
     private $customerId;
     private $timeEnd;
-    public $actionObjects;
+    private $actionObjects;
 
     /**
      * Task constructor.
      * @param int $executorId
      * @param int $customerId
+     * @param string|null $status
      */
-    public function __construct(int $customerId, int $executorId)
+    public function __construct(int $customerId, int $executorId, string $status = null)
     {
+
+        if ($customerId === $executorId) {
+            throw new TForceException(
+                'ID of customer must not be equal ID of executor'
+            );
+        }
+
+        $status = $status ?? self::STATUS_NEW;
+
+        if (!array_key_exists($status, self::STATUSES)) {
+            throw new TForceException(
+                'Available status is only one from: ' .
+                implode(', ', array_keys(self::STATUSES))
+            );
+        }
+
+        $this->curStatus = $status;
         $this->executorId = $executorId;
         $this->customerId = $customerId;
-        $this->curStatus = self::STATUS_NEW;
+
+
+        self::$ACTION_CANCEL = new ActionCancel();
+        self::$ACTION_RESPOND = new ActionRespond();
+        self::$ACTION_COMPLETE = new ActionComplete();
+        self::$ACTION_REJECT = new ActionReject();
 
         $this->actionObjects = [
-            self::ACTION_CANCEL   => new ActionCancel(),
-            self::ACTION_RESPOND  => new ActionRespond(),
-            self::ACTION_COMPLETE => new ActionComplete(),
-            self::ACTION_REJECT   => new ActionReject()
+            (self::$ACTION_CANCEL)->getInnerName()   => self::$ACTION_CANCEL,
+            (self::$ACTION_RESPOND)->getInnerName()  => self::$ACTION_RESPOND,
+            (self::$ACTION_COMPLETE)->getInnerName() => self::$ACTION_COMPLETE,
+            (self::$ACTION_REJECT)->getInnerName()   => self::$ACTION_REJECT
         ];
+
+        self::$MAP_STATUS_ACTION = [
+            self::STATUS_NEW      => [self::$ACTION_CANCEL, self::$ACTION_RESPOND],
+            self::STATUS_CANCELED => [],
+            self::STATUS_WORKING  => [self::$ACTION_COMPLETE, self::$ACTION_REJECT],
+            self::STATUS_DONE     => [],
+            self::STATUS_FAILED   => []
+        ];
+
+        self::$MAP_ACTION_STATUS = [
+            (self::$ACTION_CANCEL)->getInnerName()   => self::STATUS_CANCELED,
+            (self::$ACTION_RESPOND)->getInnerName()  => self::STATUS_WORKING,
+            (self::$ACTION_COMPLETE)->getInnerName() => self::STATUS_DONE,
+            (self::$ACTION_REJECT)->getInnerName()   => self::STATUS_FAILED
+        ];
+
     }
 
     /**
@@ -84,7 +110,7 @@ class Task
      */
     public function getMapStatusAction(): array
     {
-        return self::MAP_STATUS_ACTION;
+        return self::$MAP_STATUS_ACTION;
     }
 
     /**
@@ -92,7 +118,7 @@ class Task
      */
     public function getMapActionStatus(): array
     {
-        return self::MAP_ACTION_STATUS;
+        return self::$MAP_ACTION_STATUS;
     }
 
     /**
@@ -123,9 +149,9 @@ class Task
      * @param string $action
      * @return string Status after Action
      */
-    public function getStatusAfterAction(string $action): string
+    public function getStatusAfterAction(ActionBase $action): string
     {
-        return self::MAP_ACTION_STATUS[$action];
+        return self::$MAP_ACTION_STATUS[$action->getInnerName()];
     }
 
     /**
@@ -134,23 +160,26 @@ class Task
      */
     public function getActionsByStatus(int $curUser_id, string $status): array
     {
-        $actionStrings = self::MAP_STATUS_ACTION[$status];
-        $objActions = [];
+        if (!array_key_exists($status, self::STATUSES)) {
+            throw new TForceException(
+                'Available status is only one from: ' .
+                implode(', ', array_keys(self::STATUSES))
+            );
+        }
 
-        foreach ($actionStrings as $stringAction) {
-            if (
-                array_key_exists($stringAction, $this->actionObjects) &&
-                $this->actionObjects[$stringAction]->isAvailable(
+        $objActions = self::$MAP_STATUS_ACTION[$status];
+
+        return array_filter(
+            $objActions,
+            function ($oneObjAction) use ($curUser_id) {
+                return $oneObjAction->isAvailable(
                     $curUser_id,
                     $this->customerId,
                     $this->executorId
-                )
-            ) {
-                $objActions[$stringAction] = $this->actionObjects[$stringAction];
+                );
             }
-        }
+        );
 
-        return $objActions;
     }
 
 }
