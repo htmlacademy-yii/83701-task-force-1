@@ -33,10 +33,10 @@ class Task
     ];
 
 
-    static $ACTION_CANCEL;
-    static $ACTION_RESPOND;
-    static $ACTION_COMPLETE;
-    static $ACTION_REJECT;
+    static private $actionCancel;
+    static private $actionRespond;
+    static private $actionComplete;
+    static private $actionReject;
 
     static $MAP_STATUS_ACTION;
     static $MAP_ACTION_STATUS;
@@ -76,31 +76,31 @@ class Task
         $this->customerId = $customerId;
 
 
-        self::$ACTION_CANCEL = new ActionCancel();
-        self::$ACTION_RESPOND = new ActionRespond();
-        self::$ACTION_COMPLETE = new ActionComplete();
-        self::$ACTION_REJECT = new ActionReject();
+        self::$actionCancel = ActionCancel::getInstance();
+        self::$actionRespond = ActionRespond::getInstance();
+        self::$actionComplete = ActionComplete::getInstance();
+        self::$actionReject = ActionReject::getInstance();
 
         $this->actionObjects = [
-            (self::$ACTION_CANCEL)->getInnerName()   => self::$ACTION_CANCEL,
-            (self::$ACTION_RESPOND)->getInnerName()  => self::$ACTION_RESPOND,
-            (self::$ACTION_COMPLETE)->getInnerName() => self::$ACTION_COMPLETE,
-            (self::$ACTION_REJECT)->getInnerName()   => self::$ACTION_REJECT
+            (self::$actionCancel)->getInnerName()   => self::$actionCancel,
+            (self::$actionRespond)->getInnerName()  => self::$actionRespond,
+            (self::$actionComplete)->getInnerName() => self::$actionComplete,
+            (self::$actionReject)->getInnerName()   => self::$actionReject
         ];
 
         self::$MAP_STATUS_ACTION = [
-            self::STATUS_NEW      => [self::$ACTION_CANCEL, self::$ACTION_RESPOND],
+            self::STATUS_NEW      => [self::$actionCancel, self::$actionRespond],
             self::STATUS_CANCELED => [],
-            self::STATUS_WORKING  => [self::$ACTION_COMPLETE, self::$ACTION_REJECT],
+            self::STATUS_WORKING  => [self::$actionComplete, self::$actionReject],
             self::STATUS_DONE     => [],
             self::STATUS_FAILED   => []
         ];
 
         self::$MAP_ACTION_STATUS = [
-            (self::$ACTION_CANCEL)->getInnerName()   => self::STATUS_CANCELED,
-            (self::$ACTION_RESPOND)->getInnerName()  => self::STATUS_WORKING,
-            (self::$ACTION_COMPLETE)->getInnerName() => self::STATUS_DONE,
-            (self::$ACTION_REJECT)->getInnerName()   => self::STATUS_FAILED
+            (self::$actionCancel)->getInnerName()   => self::STATUS_CANCELED,
+            (self::$actionRespond)->getInnerName()  => self::STATUS_WORKING,
+            (self::$actionComplete)->getInnerName() => self::STATUS_DONE,
+            (self::$actionReject)->getInnerName()   => self::STATUS_FAILED
         ];
 
     }
