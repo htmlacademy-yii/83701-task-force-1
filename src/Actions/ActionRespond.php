@@ -8,6 +8,16 @@ class ActionRespond extends ActionBase
 {
     private const PUBLIC_NAME = 'Откликнуться';
     private const INNER_NAME = 'act_respond';
+    private static $instance = null;
+
+    public static function getInstance(): ActionRespond
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
 
     public function getCommonName()
     {
@@ -23,5 +33,17 @@ class ActionRespond extends ActionBase
     {
         return $curUser_id === $executor_id;
 
+    }
+
+    private function __construct()
+    {
+    }
+
+    private function __clone()
+    {
+    }
+
+    private function __wakeup()
+    {
     }
 }

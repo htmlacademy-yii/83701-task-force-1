@@ -7,7 +7,17 @@ use TForce\Actions\ActionBase;
 class ActionReject extends ActionBase
 {
     private const PUBLIC_NAME = 'Отказаться';
-    private const INNER_NAME  = 'act_reject';
+    private const INNER_NAME = 'act_reject';
+    private static $instance = null;
+
+    public static function getInstance(): ActionReject
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
 
     public function getCommonName()
     {
@@ -23,4 +33,17 @@ class ActionReject extends ActionBase
     {
         return $curUser_id === $executor_id;
     }
+
+    private function __construct()
+    {
+    }
+
+    private function __clone()
+    {
+    }
+
+    private function __wakeup()
+    {
+    }
+
 }
