@@ -9,6 +9,7 @@ require_once '../vendor/autoload.php';
 use TForce\Logic\Task;
 use TForce\Actions\ActionCancel;
 
+/** TODO Check Task.php functionality
 $taskInstance = new Task(2, 3);
 
 $x1 = $taskInstance->getMapStatusAction();
@@ -22,6 +23,8 @@ $x7 = $taskInstance->getActionsByStatus(3,Task::STATUS_WORKING);
 echo "<br>" . __FILE__ . " --- " . __LINE__ . "<pre>";
 var_dump($x7);
 echo  "</pre><br>";
+*/
 
+/* TODO Check Parsing CSV files */
 
-
+include '../src/CsvToSql/ReadFilesFromStorage.php';
