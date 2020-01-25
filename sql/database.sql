@@ -68,8 +68,8 @@ CREATE TABLE `tforce`.`users` (
   `phone`         VARCHAR(256)                          NULL,
   `skype`         VARCHAR(256)                          NULL,
   `telegram`      VARCHAR(256)                          NULL,
-  `view_number`   INT UNSIGNED ZEROFILL                 NOT NULL DEFAULT '0',
-  `rate`          TINYINT UNSIGNED ZEROFILL             NULL     DEFAULT NULL,
+  `views_number`  INT UNSIGNED ZEROFILL                 NOT NULL DEFAULT '0',
+  `rate`          DECIMAL(2, 1) UNSIGNED ZEROFILL             NULL     DEFAULT NULL,
   `fail_count`    INT UNSIGNED ZEROFILL                 NOT NULL DEFAULT '0',
 
   PRIMARY KEY (`id`),

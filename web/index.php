@@ -8,6 +8,7 @@ require_once '../vendor/autoload.php';
 
 use TForce\Logic\Task;
 use TForce\Actions\ActionCancel;
+use TForce\CsvToSql\ConverterCsvToSql;
 
 /** TODO Check Task.php functionality
 $taskInstance = new Task(2, 3);
@@ -26,5 +27,5 @@ echo  "</pre><br>";
 */
 
 /* TODO Check Parsing CSV files */
-
-include '../src/CsvToSql/ReadFilesFromStorage.php';
+$converter = new ConverterCsvToSql();
+$converter->handleDirWithCSVFiles();
