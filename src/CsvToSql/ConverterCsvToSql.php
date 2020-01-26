@@ -8,19 +8,19 @@ class ConverterCsvToSql
 {
 
     private const TABLES_ORDER = [
-        1 => 'notices_types',
-        2 => 'categories',
-        3 => 'cities',
-        4 => 'users',
-        5 => 'favorites',
-        6 => 'users_media',
-
+        1  => 'notices_types',
+        2  => 'categories',
+        3  => 'cities',
+        4  => 'users',
+        5  => 'favorites',
+        6  => 'users_media',
         7  => 'users_notices_types',
         8  => 'users_categories',
         9  => 'notices',
         10 => 'tasks',
         11 => 'tasks_media',
         12 => 'responses',
+
         13 => 'reviews',
         14 => 'chat_msgs'
     ];
@@ -180,7 +180,7 @@ class ConverterCsvToSql
 
         if (array_search($tableName, self::TABLES_ORDER)) {
             $orderedFileName =
-                $tableName . '_' . array_search($tableName, self::TABLES_ORDER);
+                array_search($tableName, self::TABLES_ORDER) . '_' . $tableName;
         }
 
         $sqlFileName = self::$dirNameWithSQLFiles
