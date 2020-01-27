@@ -49,14 +49,13 @@ class TaskTest extends TestCase
 
     public function setUp()
     {
-//        $this->test_customer_id = 2;
-//        $this->test_executor_id = 3;
+
         $this->taskInst = new Task($this->test_customer_id, $this->test_executor_id);
 
-        $this->actionComplete = new ActionComplete();
-        $this->actionReject = new ActionReject();
-        $this->actionRespond = new ActionRespond();
-        $this->actionCancel = new ActionCancel();
+        $this->actionComplete =  ActionComplete::getInstance();
+        $this->actionReject =  ActionReject::getInstance();
+        $this->actionRespond =  ActionRespond::getInstance();
+        $this->actionCancel =  ActionCancel::getInstance();
 
     }
 
@@ -308,10 +307,10 @@ class TaskTest extends TestCase
         $dataSet = [];
 
         $arrActionObjects = [
-            new ActionComplete(),
-            new ActionCancel(),
-            new ActionReject(),
-            new ActionRespond()
+             ActionComplete::getInstance(),
+             ActionCancel::getInstance(),
+             ActionReject::getInstance(),
+             ActionRespond::getInstance()
         ];
 
         $taskInst = new Task($this->test_customer_id, $this->test_executor_id);

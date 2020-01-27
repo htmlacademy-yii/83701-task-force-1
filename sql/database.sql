@@ -68,8 +68,8 @@ CREATE TABLE `tforce`.`users` (
   `phone`         VARCHAR(256)                          NULL,
   `skype`         VARCHAR(256)                          NULL,
   `telegram`      VARCHAR(256)                          NULL,
-  `view_number`   INT UNSIGNED ZEROFILL                 NOT NULL DEFAULT '0',
-  `rate`          TINYINT UNSIGNED ZEROFILL             NULL     DEFAULT NULL,
+  `views_number`  INT UNSIGNED ZEROFILL                 NOT NULL DEFAULT '0',
+  `rate`          DECIMAL(2, 1) UNSIGNED ZEROFILL       NULL     DEFAULT NULL,
   `fail_count`    INT UNSIGNED ZEROFILL                 NOT NULL DEFAULT '0',
 
   PRIMARY KEY (`id`),
@@ -94,6 +94,7 @@ CREATE TABLE `tforce`.`favorites` (
   `selected_user_id` INT UNSIGNED NOT NULL,
 
   PRIMARY KEY (`id`),
+  UNIQUE `UNIQUE_USER_SELECTED_USER` (`user_id`, `selected_user_id`),
 
   CONSTRAINT `favorites_users_1`
   FOREIGN KEY (`selected_user_id`) REFERENCES `tforce`.`users` (`id`)
@@ -141,8 +142,8 @@ CREATE TABLE `tforce`.`tasks` (
   `time_end`    TIMESTAMP                                             NOT NULL,
   `budget`      INT                                                   NULL,
   `status`      ENUM ('new', 'canceled', 'working', 'done', 'failed') NOT NULL DEFAULT 'new',
-  `latitude`    DECIMAL(11, 7)                                        NULL,
-  `longitude`   DECIMAL(11, 7)                                        NULL,
+  `latitude`    DECIMAL(10, 7)                                        NULL,
+  `longitude`   DECIMAL(10, 7)                                        NULL,
 
   PRIMARY KEY (`id`),
 
@@ -198,6 +199,7 @@ CREATE TABLE `tforce`.`users_categories` (
   `category_id` TINYINT UNSIGNED NOT NULL,
 
   PRIMARY KEY (`id`),
+  UNIQUE `UNIQUE_USER_CATEGORY` (`user_id`, `category_id`),
 
   CONSTRAINT `usersCategories_users`
   FOREIGN KEY (`user_id`) REFERENCES `tforce`.`users` (`id`)
@@ -222,6 +224,7 @@ CREATE TABLE `tforce`.`users_notices_types` (
   `notice_type_id` TINYINT UNSIGNED NOT NULL,
 
   PRIMARY KEY (`id`),
+  UNIQUE `UNIQUE_USER_NOTICE_TYPE` (`user_id`, `notice_type_id`),
 
   CONSTRAINT `usersNoticesTypes_users`
   FOREIGN KEY (`user_id`) REFERENCES `tforce`.`users` (`id`)
@@ -266,12 +269,12 @@ CREATE TABLE `tforce`.`notices` (
 # ======= Создание таблицы chat_msgs
 
 CREATE TABLE `tforce`.`chat_msgs` (
-  `id`               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `user_id`          INT UNSIGNED    NOT NULL,
-  `task_id`          INT UNSIGNED    NOT NULL,
-  `is_new`           BOOLEAN         NOT NULL DEFAULT TRUE,
-  `text`             TEXT            NOT NULL,
-  `time_publication` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`    INT UNSIGNED    NOT NULL,
+  `task_id`    INT UNSIGNED    NOT NULL,
+  `is_new`     BOOLEAN         NOT NULL DEFAULT TRUE,
+  `text`       TEXT            NOT NULL,
+  `created_at` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY (`id`),
 
@@ -298,6 +301,7 @@ CREATE TABLE `tforce`.`responses` (
   `whose_user_id` INT UNSIGNED          NOT NULL,
   `price`         INT UNSIGNED ZEROFILL NULL,
   `text`          TEXT                  NULL,
+  `created_at`    TIMESTAMP             NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY (`id`),
 
@@ -324,6 +328,8 @@ CREATE TABLE `tforce`.`reviews` (
   `whom_user_id` INT UNSIGNED        NOT NULL,
   `score`        TINYINT(1) UNSIGNED NULL,
   `text`         TEXT                NULL,
+  `created_at`   TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
   PRIMARY KEY (`id`),
 
   CONSTRAINT `reviews_tasks`

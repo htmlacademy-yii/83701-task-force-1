@@ -8,20 +8,61 @@ class ActionRespond extends ActionBase
 {
     private const PUBLIC_NAME = 'Откликнуться';
     private const INNER_NAME = 'act_respond';
+    private static $instance = null;
 
-    public function getCommonName()
+    /**
+     * @return ActionRespond
+     */
+    public static function getInstance(): ActionRespond
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCommonName(): string
     {
         return self::PUBLIC_NAME;
     }
 
-    public function getInnerName()
+    /**
+     * @return string
+     */
+    public function getInnerName(): string
     {
         return self::INNER_NAME;
     }
 
-    public function isAvailable($curUser_id, $customer_id, $executor_id)
+    /**
+     * @param int $curUser_id
+     * @param int $customer_id
+     * @param int $executor_id
+     * @return bool
+     */
+    public function isAvailable(
+        int $curUser_id,
+        int $customer_id,
+        int $executor_id
+    ): bool
     {
         return $curUser_id === $executor_id;
 
+    }
+
+    private function __construct()
+    {
+    }
+
+    private function __clone()
+    {
+    }
+
+    private function __wakeup()
+    {
     }
 }
