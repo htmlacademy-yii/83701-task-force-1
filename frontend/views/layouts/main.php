@@ -7,23 +7,11 @@ use yii\helpers\Html;
 use frontend\assets\AppAsset;
 
 AppAsset::register($this);
-
-
-$alias1  = Yii::getAlias('@webroot');
-$alias2  = Yii::getAlias('@web');
-
-
-
-/*echo "<br>" . __FILE__ . " --- " . __LINE__ . "<pre>";
-var_dump($alias1);
-var_dump($alias2);
-die;
-echo  "</pre><br>";*/
-
-
-
 ?>
+
+
 <?php $this->beginPage() ?>
+
 <!DOCTYPE html>
 <html lang="<?= Yii::$app->language ?>">
 
@@ -142,9 +130,16 @@ echo  "</pre><br>";*/
             </div>
             <div class="header__account">
                 <a class="header__account-photo">
-                    <img src="./img/user-photo.png"
-                         width="43" height="44"
-                         alt="Аватар пользователя">
+                    <?php
+                    echo Html::img(
+                        '@web/img/user-photo.png',
+                        [
+                            'alt'    => 'Аватар пользователя',
+                            'width'  => '43',
+                            'height' => '44',
+                        ]
+                    )
+                    ?>
                 </a>
                 <span class="header__account-name">
                  Василий
@@ -205,10 +200,17 @@ echo  "</pre><br>";*/
             </div>
             <div class="page-footer__copyright">
                 <a>
-                    <img class="copyright-logo"
-                         src="./img/academy-logo.png"
-                         width="185" height="63"
-                         alt="Логотип HTML Academy">
+                    <?php
+                    echo Html::img(
+                        '@web/img/academy-logo.png',
+                        [
+                            'class'  => 'copyright-logo',
+                            'alt'    => 'Логотип HTML Academy',
+                            'width'  => '185',
+                            'height' => '63',
+                        ]
+                    )
+                    ?>
                 </a>
             </div>
         </div>
@@ -219,4 +221,5 @@ echo  "</pre><br>";*/
 <?php $this->endBody() ?>
 </body>
 </html>
+
 <?php $this->endPage() ?>
