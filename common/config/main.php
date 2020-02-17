@@ -1,6 +1,6 @@
 <?php
 
-$dbConfig = require './db.php';
+$dbConfig = require 'db.php';
 
 return [
     'aliases'    => [
