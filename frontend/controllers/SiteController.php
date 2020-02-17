@@ -14,6 +14,7 @@ use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\SignupForm;
 use frontend\models\ContactForm;
+use frontend\models\Categories;
 
 /**
  * Site controller
@@ -74,7 +75,9 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+
+        $allCategories = Categories::find()->asArray()->all();;
+        return $this->render('index', ['allCategories'=>$allCategories]);
     }
 
     /**
