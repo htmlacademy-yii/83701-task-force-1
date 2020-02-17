@@ -1,6 +1,9 @@
 <?php
+
+$dbConfig = require './db.php';
+
 return [
-    'aliases' => [
+    'aliases'    => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
     ],
@@ -9,5 +12,6 @@ return [
         'cache' => [
             'class' => 'yii\caching\FileCache',
         ],
+        'db'    => $dbConfig,
     ],
 ];
